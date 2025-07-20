@@ -1,0 +1,90 @@
+<div class="mf-guide-container">
+<button class="back-btn" routerLink="/" aria-label="Back to Home">&larr; Back to Home</button>
+  <h1>Micro Frontends with Angular</h1>
+  <p>
+    Angular offers robust support for Micro Frontends via <strong>Module Federation</strong> (Webpack 5). Libraries like <code>@angular-architects/module-federation</code> make integration easy.
+  </p>
+
+  <h2>Step-by-Step Guide to Creating a Micro Frontend in Angular</h2>
+
+  <h3>Step 1: Prerequisites</h3>
+  <ul>
+    <li>Node.js and npm installed</li>
+    <li>Angular CLI installed globally: <code>npm install -g @angular/cli</code></li>
+    <li>Basic understanding of Angular apps</li>
+  </ul>
+
+  <h3>Step 2: Create the Host and Remote Apps</h3>
+    <pre>
+        ng new shell --routing --style=scss
+        ng new feature --routing --style=scss
+    </pre>
+        <p>Install module federation tools:</p>
+    <pre>
+        cd shell
+        ng add @angular-architects/module-federation
+        cd ../feature
+        ng add @angular-architects/module-federation
+    </pre>
+
+  <h3>Step 3: Configure Module Federation</h3>
+  <p><strong>Shell (Host) - webpack.config.js</strong></p>
+   <pre><code>
+        const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
+
+        module.exports = &#123;
+        plugins: [
+            new ModuleFederationPlugin(&#123;
+            remotes: &#123;
+                feature: "feature@http://localhost:4201/remoteEntry.js"
+            &#125;
+            &#125;)
+        ]
+        &#125;;
+    </code></pre>   
+    <p><strong>Feature (Remote) - webpack.config.js</strong></p>
+    <pre><code>
+    const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
+
+    module.exports = &#123;
+    output: &#123;
+        publicPath: "auto"
+    &#125;,
+    plugins: [
+        new ModuleFederationPlugin(&#123;
+        name: "feature",
+        filename: "remoteEntry.js",
+        exposes: &#123;
+            './Module': './src/app/feature/feature.module.ts'
+        &#125;,
+        shared: ["@angular/core", "@angular/common", "@angular/router"]
+        &#125;)
+    ]
+    &#125;;
+    </code></pre>
+    <h3>Step 4: Update Angular Routing in Shell</h3>
+<pre><code>
+const routes: Routes = [
+  &#123;
+    path: 'feature',
+    loadChildren: () =&gt; import('feature/Module').then(m =&gt; m.FeatureModule)
+  &#125;
+];
+</code></pre>
+<p>Update <code>tsconfig.json</code>:</p>
+<pre><code>
+"compilerOptions": &#123;
+  "types": ["webpack-env"]
+&#125;
+</code></pre>
+
+<h3>Step 5: Run the Applications</h3>
+<pre><code>
+# In feature app
+ng serve --port 4201
+
+# In shell app
+ng serve --port 4200
+</code></pre>
+<p>
+  Now, visiting <a href="http://localhost:4200/feature" target="_blank">http://localhost:4200/feature</a> will load the remote feature app inside the
