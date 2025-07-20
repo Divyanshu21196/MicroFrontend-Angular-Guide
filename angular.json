@@ -33,7 +33,7 @@
 							"src/styles.scss"
 						],
 						"main": "src/main.ts",
-						"outputPath": "dist/feature",
+						"outputPath": "dist",
 						"index": "src/index.html",
 						"extraWebpackConfig": "webpack.config.js",
 						"commonChunk": false
